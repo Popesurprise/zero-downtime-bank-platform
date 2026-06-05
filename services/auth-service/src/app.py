@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from prometheus_client import Counter, generate_latest
 from prometheus_client import CONTENT_TYPE_LATEST
 
@@ -45,6 +45,25 @@ def metrics():
     return generate_latest(), 200, {
         "Content-Type": CONTENT_TYPE_LATEST
     }
+
+@app.route("/login", methods=["POST"])
+def login():
+
+    REQUEST_COUNT.inc()
+
+    data = request.get_json()
+
+    username = data.get("username")
+    password = data.get("password")
+
+    if username == "admin" and password == "password":
+        return jsonify({
+            "message": "login successful"
+        })
+
+    return jsonify({
+        "message": "invalid credentials"
+    }), 401
 
 
 if __name__ == "__main__":
