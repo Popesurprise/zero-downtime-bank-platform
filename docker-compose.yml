@@ -1,0 +1,22 @@
+services:
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+    container_name: auth-service
+    ports:
+      - "5000:5000"
+
+  balance-service:
+    build:
+      context: ./services/balance-service
+    container_name: balance-service
+    ports:
+      - "5001:5001"
+
+  transfer-service:
+    build:
+      context: ./services/transfer-service
+    container_name: transfer-service
+    ports:
+      - "5002:5002"
