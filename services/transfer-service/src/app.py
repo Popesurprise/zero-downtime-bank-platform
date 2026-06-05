@@ -1,3 +1,4 @@
+import requests
 from flask import Flask, jsonify, request
 from prometheus_client import Counter, generate_latest
 from prometheus_client import CONTENT_TYPE_LATEST
@@ -5,6 +6,10 @@ from prometheus_client import CONTENT_TYPE_LATEST
 app = Flask(__name__)
 
 VERSION = "v1"
+
+AUTH_SERVICE_URL = "http://auth-service:5000"
+BALANCE_SERVICE_URL = "http://balance-service:5001"
+
 
 REQUEST_COUNT = Counter(
     "transfer_requests_total",
@@ -43,19 +48,49 @@ def version():
 def transfer():
 
     REQUEST_COUNT.inc()
+    
+    try:
+        auth_response = requests.get(
+            f"{AUTH_SERVICE_URL}/health",
+            timeout=5
+        )
 
-    data = request.get_json() or {}
+        if auth_response.status_code != 200:
+            return jsonify({
+                "status": "failed",
+                "message": "Auth service is unavailable"
+            }), 503
+        
+        balance_response = requests.get(
+            f"{BALANCE_SERVICE_URL}/balance",
+            timeout=5
+        )
 
-    from_account = data.get("from_account")
-    to_account = data.get("to_account")
-    amount = data.get("amount")
+        balance_data = balance_response.json()
 
-    return jsonify({
-        "status": "success",
-        "from_account": from_account,
-        "to_account": to_account,
-        "amount": amount
-    })
+        current_balance = balance_data["balance"]
+
+        data = request.get_json() or {}
+
+        amount = data.get("amount", 0)
+
+        if amount > current_balance:
+            return jsonify({
+                "status": "failed",
+                "message": "Insufficient funds"
+            }), 400
+        
+        return jsonify({
+            "status": "success",
+            "message": "Transfer completed successfully",
+            "remaining_balance": current_balance - amount
+        })  
+
+    except Exception as e:
+        return jsonify({
+            "status": "failed",
+            "message": str(e)
+        }), 500
 
 
 @app.route("/metrics")
