@@ -1,0 +1,44 @@
+name: Bank Platform CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Auth Dependencies
+        run: |
+          pip install -r services/auth-service/requirements.txt
+
+      - name: Install Balance Dependencies
+        run: |
+          pip install -r services/balance-service/requirements.txt
+
+      - name: Install Transfer Dependencies
+        run: |
+          pip install -r services/transfer-service/requirements.txt
+
+      - name: Validate Python Syntax
+        run: |
+          python -m py_compile services/auth-service/src/app.py
+          python -m py_compile services/balance-service/src/app.py
+          python -m py_compile services/transfer-service/src/app.py
