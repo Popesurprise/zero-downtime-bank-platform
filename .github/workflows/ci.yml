@@ -54,3 +54,7 @@ jobs:
       - name: Build Transfer Image
         run: |
           docker build -t transfer-service:v1 ./services/transfer-service
+
+      - name: Validate Docker compose
+        run: |
+          docker compose config
