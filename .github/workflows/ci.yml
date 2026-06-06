@@ -42,3 +42,15 @@ jobs:
           python -m py_compile services/auth-service/src/app.py
           python -m py_compile services/balance-service/src/app.py
           python -m py_compile services/transfer-service/src/app.py
+
+      - name: Build Auth Image
+        run: |
+          docker build -t auth-service:v1 ./services/auth-service
+
+      - name: Build Balance Image
+        run: |
+          docker build -t balance-service:v1 ./services/balance-service
+
+      - name: Build Transfer Image
+        run: |
+          docker build -t transfer-service:v1 ./services/transfer-service
